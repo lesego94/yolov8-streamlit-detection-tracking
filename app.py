@@ -5,7 +5,7 @@ import streamlit as st
 import torch
 import cv2
 import pafy
-
+import os
 import settings
 import helper
 
@@ -16,7 +16,7 @@ st.title("Object Detection using YOLOv8")
 st.sidebar.header("ML Model Config")
 
 mlmodel_radio = st.sidebar.radio(
-    "Select Task", ['Detection', 'Segmentation'])
+    "Select Task", ['Segmentation','Detection' ])
 conf = float(st.sidebar.slider("Select Model Confidence", 25, 100, 40)) / 100
 if mlmodel_radio == 'Detection':
     dirpath_locator = settings.DETECT_LOCATOR
@@ -65,25 +65,29 @@ if source_radio == settings.IMAGE:
             if st.sidebar.button('Detect Objects'):
                 with torch.no_grad():
                     res = model.predict(
-                        image, save=save, save_txt=save, exist_ok=True, conf=conf)
+                        source = image, save=save, save_txt=save, exist_ok=True, conf=conf, project =f"runs/{dirpath_locator}/predict/image.jpeg")
                     boxes = res[0].boxes
                     res_plotted = res[0].plot()[:, :, ::-1]
                     st.image(res_plotted, caption='Detected Image',
                              use_column_width=True)
-                    IMAGE_DOWNLOAD_PATH = f"runs/{dirpath_locator}/predict/image0.jpg"
-                    with open(IMAGE_DOWNLOAD_PATH, 'rb') as fl:
-                        st.download_button("Download object-detected image",
-                                           data=fl,
-                                           file_name="image0.jpg",
-                                           mime='image/jpg'
-                                           )
-                try:
-                    with st.expander("Detection Results"):
-                        for box in boxes:
-                            st.write(box.xywh)
-                except Exception as ex:
-                    # st.write(ex)
-                    st.write("No image is uploaded yet!")
+                    # IMAGE_DOWNLOAD_PATH = f"runs/{dirpath_locator}/predict/image0.jpg"
+                    
+                    # with open(IMAGE_DOWNLOAD_PATH, 'rb') as fl:
+                    #     st.download_button("Download object-detected image",
+                    #                        data=fl,
+                    #                        file_name="image0.jpg", 
+                    #                        mime='image/jpg'
+                    #                        )
+                # try:
+                #     with st.expander("Detection Results"):
+                #         for box in boxes:
+                #             st.write(box.xywh)
+                # except Exception as ex:
+                #     # st.write(ex)
+                #     st.write("No image is uploaded yet!")
+        
+                No_crocs = res[0].boxes.shape[0]
+                st.write("Number of Crocodiles",No_crocs)
 
 elif source_radio == settings.VIDEO:
     source_vid = st.sidebar.selectbox(
